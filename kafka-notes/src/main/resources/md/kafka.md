@@ -124,6 +124,95 @@ producer 是线程安全的
 
 
 
+**序列化**
+
+生产者将消息转换成字节数组后通过网络发送给 kafka
+
+
+
+**分区器**
+
+如果 ProducerRecord 中指定了 partition，就不需要分区器
+
+默认：`org.apache.kafka.clients.producer.internals.DefaultPartitioner`
+
+
+
+**生产者拦截器**
+
+在消息发送之前做一些准备工作 (过滤)
+
+
+
+### 2.2 原理分析
+
+
+
+**整体架构**
+
+主线程经过 (拦截器，序列化器，分区器) 将消息发送到 RecordAccmulator
+
+RecordAccmulator (每个分区一个双端队列 `Deque<ProducerBatch>`) 用来缓存消息批量发送
+
+sender 线程从 RecordAccmulator 中取出消息放到 InFlightRequests (保存已经发出去还没有收到响应的请求) 中
+
+
+
+**元数据的更新**
+
+
+
+### 2.3 生产者参数
+
+- acks：指定有多少副本收到消息才会认为消息成功写入
+- max.request.size：限制生产者客户端能发送消息的最大值 (1MB)
+- reties / retry.backoff.ms：重试次数 / 两次重试的时间间隔
+- compression.type：消息压缩方式
+- connections.max.idle.ms：关闭限制的连接的时间
+- linger.ms：ProducerRecord 满了之后生产者的等待时间
+- receive.buffer.bytes：socket 接收消息缓冲区的大小
+- send.buffer.bytes：socket 发送消息缓冲区的大小
+- request.timeout.ms：Producer 等待请求的最长时间 (超时后能重试)
+
+
+
+
+
+## 三. 消费者
+
+
+
+### 3.1 消费者 与 消费组
+
+每个分区只能被一个消费组中的一个消费者消费
+
+消息投递模式
+
+- 点对点：基于队列，可以把所有的消费组放到一个消费组中来实现
+- 发布 / 订阅：通过订阅主题，可以把每个消费者都放到不同消费者组进行会进行广播
+
+
+
+### 3.2 客户端开发
+
+1. 配置消费者客户端参数 及 创建相应的消费者实例
+2. 订阅主题
+3. 拉取消息并消费
+4. 提交消费位移
+5. 关闭消费者实例
+
+
+
+**订阅主题 与 分区**
+
+通过集合订阅主题，也可以采用正则
+
+
+
+
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.chapter02.ProducerInterceptorPrefix;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -12,10 +13,7 @@ public class ProducerFastStart {
     public static final String topic = "topic-demo";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        Properties properties = new Properties();
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        Properties properties = intiConfig();
 
         KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, "hello, kafka");
@@ -40,5 +38,14 @@ public class ProducerFastStart {
         // 回收资源，会阻塞等待所有的请求完成 (可以指定等待时间)
         producer.close();
 
+    }
+
+    private static Properties intiConfig() {
+        Properties properties = new Properties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        properties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, ProducerInterceptorPrefix.class.getName());
+        return properties;
     }
 }
